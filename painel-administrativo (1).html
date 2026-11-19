@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biblioteca SENAI · Painel Administrativo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%230F1F36'/%3E%3Ctext x='16' y='22' font-family='JetBrains Mono,monospace' font-size='15' font-weight='700' fill='%23fff' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   BIBLIOTECA SENAI · PAINEL ADMINISTRATIVO
+   Mesma linguagem visual do check-in: navy profundo + ciano teal,
+   papel morno, rótulos monoespaçados, kickers editoriais.
+   ============================================================ */
+
+/* ---------- TOKENS · MODO CLARO (idênticos ao check-in) ---------- */
+:root{
+  --bg:#F4F2EC; --surface:#FFFFFF; --surface-alt:#EDEAE0;
+  --borda:#D8D3C5; --borda-suave:#E5E1D4;
+  --text:#0F1F36; --text-muted:#5A6678; --text-fraco:#8B93A1;
+  --azul:#0F1F36; --azul-2:#1B365D;
+  --ciano:#006B7A; --ciano-2:#008A9A; --ciano-bg:rgba(0,107,122,0.07);
+  --verde:#1F7A4D; --verde-bg:rgba(31,122,77,0.18);
+  --perigo:#B23A48; --perigo-bg:rgba(178,58,72,0.10);
+  --amber:#B7791F; --amber-bg:rgba(183,121,31,0.12);
+  --senai-bg:#0F1F36; --senai-text:#FFFFFF;
+  --sombra:0 1px 0 rgba(15,31,54,.06),0 6px 22px rgba(15,31,54,.06);
+  --radius:12px; --radius-sm:8px;
+}
+/* ---------- TOKENS · MODO ESCURO (idênticos ao check-in) ---------- */
+[data-theme="dark"]{
+  --bg:#0B1424; --surface:#111D33; --surface-alt:#182742;
+  --borda:#1F3354; --borda-suave:#1A2A47;
+  --text:#EEF1F6; --text-muted:#A8BAD6; --text-fraco:#8A9CB8;
+  --azul:#EEF1F6; --azul-2:#B7C5DB;
+  --ciano:#4DD0E1; --ciano-2:#6BDDEC; --ciano-bg:rgba(77,208,225,0.08);
+  --verde:#4ADE80; --verde-bg:rgba(74,222,128,0.18);
+  --perigo:#E57373; --perigo-bg:rgba(229,115,115,0.14);
+  --amber:#D99A3D; --amber-bg:rgba(217,154,61,0.16);
+  --senai-bg:#FFFFFF; --senai-text:#0B1424;
+  --sombra:0 1px 0 rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  background:var(--bg); color:var(--text);
+  font-size:15px; line-height:1.5; min-height:100dvh;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  transition:background-color .25s ease, color .25s ease;
+}
+.mono{font-family:'JetBrains Mono',monospace;font-feature-settings:"tnum"}
+button{font:inherit;cursor:pointer;color:inherit}
+input,select,textarea{font:inherit;color:var(--text)}
+a{color:var(--ciano)}
+.hidden{display:none !important}
+.muted{color:var(--text-muted)}
+.fraco{color:var(--text-fraco)}
+
+/* ---------- TOPBAR ---------- */
+.topbar{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--borda)}
+.topbar-in{max-width:1160px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.marca-grupo{display:flex;align-items:center;gap:8px}
+.selo-senai{background:var(--senai-bg);color:var(--senai-text);font-weight:800;font-size:11px;letter-spacing:1.5px;padding:4px 7px 3px;border-radius:2px;font-family:'JetBrains Mono',monospace}
+.marca-nome{font-weight:700;font-size:15px;letter-spacing:-.2px}
+.marca-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-fraco);letter-spacing:.5px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.clock{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted)}
+.sync-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--borda);background:var(--surface);padding:5px 10px;border-radius:6px;font-size:12px;color:var(--text-muted)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--text-fraco);display:inline-block}
+.sync-dot.on{background:var(--verde);box-shadow:0 0 0 3px var(--verde-bg)}
+.sync-dot.err{background:var(--perigo);box-shadow:0 0 0 3px var(--perigo-bg)}
+.sync-dot.off{background:var(--text-fraco)}
+.icon-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--borda);background:var(--surface);color:var(--text-muted);border-radius:6px;padding:7px 11px;font-size:12px;font-weight:500;transition:border-color .15s,color .15s}
+.icon-btn:hover{border-color:var(--text-muted);color:var(--text)}
+.icone-sol{display:none}
+[data-theme="dark"] .icone-lua{display:none}
+[data-theme="dark"] .icone-sol{display:block}
+
+/* ---------- TABS ---------- */
+.tabs{max-width:1160px;margin:0 auto;padding:12px 22px 0;display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--borda)}
+.tab{border:none;background:transparent;color:var(--text-muted);padding:10px 14px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px;border-bottom:2px solid transparent;transition:color .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--ciano)}
+.tab .badge{background:var(--ciano-bg);color:var(--ciano);border-radius:999px;font-size:11px;font-weight:700;padding:1px 7px;font-family:'JetBrains Mono',monospace}
+.tab .badge.live{background:var(--verde-bg);color:var(--verde)}
+
+/* ---------- LAYOUT ---------- */
+main{max-width:1160px;margin:0 auto;padding:22px 22px 60px}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fade .2s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.kicker{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--text-muted);letter-spacing:1.2px;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px}
+.kicker::before{content:"";width:14px;height:1px;background:var(--ciano)}
+.kicker.ok{color:var(--verde)}
+.kicker.ok::before{background:var(--verde)}
+.kicker.perigo{color:var(--perigo)}
+.kicker.perigo::before{background:var(--perigo)}
+
+.section-title{font-size:18px;font-weight:800;letter-spacing:-.3px;margin:0 0 4px}
+.section-sub{color:var(--text-muted);font-size:13.5px;margin-bottom:18px}
+.card{background:var(--surface);border:1px solid var(--borda);border-radius:var(--radius);box-shadow:var(--sombra)}
+.card-pad{padding:18px 20px}
+.card + .card{margin-top:16px}
+
+/* ---------- greeting ---------- */
+.greet{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.greet h1{font-size:28px;font-weight:800;letter-spacing:-.6px;line-height:1.1}
+.greet h1 em{color:var(--ciano);font-style:normal}
+.greet p{color:var(--text-muted);margin-top:5px;font-size:14px}
+.greet-actions{margin-left:auto;display:flex;gap:9px;flex-wrap:wrap}
+
+/* ---------- buttons ---------- */
+.btn{border:1px solid var(--borda);background:var(--surface);color:var(--text);border-radius:8px;padding:9px 14px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:transform .05s,border-color .15s,background .15s}
+.btn:hover{border-color:var(--text-muted)}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--azul);border-color:var(--azul);color:var(--senai-text)}
+.btn-primary:hover{background:var(--azul-2);border-color:var(--azul-2)}
+.btn-ciano{background:var(--ciano);border-color:var(--ciano);color:#fff}
+.btn-ciano:hover{background:var(--ciano-2);border-color:var(--ciano-2)}
+.btn-danger{background:transparent;border-color:var(--perigo);color:var(--perigo)}
+.btn-danger:hover{background:var(--perigo-bg)}
+.btn-sm{padding:5px 10px;font-size:12.5px;border-radius:6px}
+.btn .seta{transition:transform .18s}
+.btn:hover .seta{transform:translateX(2px)}
+
+/* ---------- stat strip ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--borda);border-radius:var(--radius);padding:14px 16px}
+.stat .kicker{margin-bottom:8px}
+.stat .num{font-size:26px;font-weight:800;letter-spacing:-.5px;font-family:'JetBrains Mono',monospace;color:var(--text)}
+.stat .num small{font-size:13px;font-weight:600;color:var(--text-muted);margin-left:3px}
+.stat .sub{font-size:12px;color:var(--text-fraco);margin-top:3px}
+
+/* ---------- banner conexão ---------- */
+.banner{background:var(--ciano-bg);border:1px solid var(--ciano);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px}
+.banner .kicker{color:var(--ciano)}
+.banner h3{font-size:18px;font-weight:800;margin:6px 0 4px;letter-spacing:-.3px}
+.banner p{font-size:13.5px;color:var(--text-muted);margin-bottom:12px;max-width:62ch}
+.banner .botoes{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.code-box{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--ciano);background:var(--surface);border:1px dashed var(--ciano);padding:6px 12px;border-radius:6px;user-select:all}
+
+/* ---------- lista presença ---------- */
+.lista{display:flex;flex-direction:column;gap:10px}
+.pessoa{background:var(--surface);border:1px solid var(--borda);border-radius:var(--radius);padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+.pessoa-info{min-width:0}
+.pessoa-nome{font-weight:700;font-size:15px;letter-spacing:-.2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pessoa-meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:5px;font-size:12.5px;color:var(--text-muted)}
+.pessoa-meta span{display:inline-flex;align-items:center;gap:5px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:3px;letter-spacing:.4px;text-transform:uppercase}
+.tag.leitura{background:var(--ciano-bg);color:var(--ciano)}
+.tag.estudo{background:var(--verde-bg);color:var(--verde)}
+.tag.jogos{background:var(--amber-bg);color:var(--amber)}
+.tag.emprestimo{background:var(--surface-alt);color:var(--text-muted)}
+.empty{padding:36px 20px;text-align:center;color:var(--text-fraco)}
+.empty svg{margin-bottom:10px;opacity:.5}
+
+/* ---------- tabelas ---------- */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--borda);border-radius:var(--radius);background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+thead th{background:var(--surface-alt);color:var(--text-muted);font-weight:600;text-align:left;padding:10px 14px;font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--borda);white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--borda-suave);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-alt)}
+td .nm{font-weight:600}
+td.mono,th.mono{font-family:'JetBrains Mono',monospace;font-feature-settings:"tnum"}
+
+/* ---------- filtros ---------- */
+.filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.filtros label{font-size:12px;font-weight:600;color:var(--text-muted)}
+input[type=text],input[type=date],input[type=search],select,textarea{
+  height:40px;padding:0 12px;border-radius:8px;border:1px solid var(--borda);background:var(--surface);
+  color:var(--text);font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s;appearance:none;-webkit-appearance:none
+}
+input:focus,select:focus,textarea:focus{border-color:var(--ciano);box-shadow:0 0 0 3px var(--ciano-bg)}
+select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235A6678' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+input[type=text]::placeholder{color:var(--text-fraco)}
+
+/* ---------- formulário inline ---------- */
+.form-row{display:grid;grid-template-columns:1.4fr 1fr auto;gap:10px;align-items:end}
+.form-row .campo label,.campo label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+.campo{display:flex;flex-direction:column}
+
+/* ---------- gráficos relatório ---------- */
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:120px 1fr 46px;gap:10px;align-items:center;font-size:13px}
+.bar-row .lbl{color:var(--text-muted);font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{height:24px;background:var(--surface-alt);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;background:var(--ciano);border-radius:5px;transition:width .4s ease}
+.bar-row .vl{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12.5px;text-align:right}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* ---------- lista configurações ---------- */
+.set-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--borda-suave);flex-wrap:wrap}
+.set-row:last-child{border-bottom:none}
+.set-row .set-info{flex:1;min-width:200px}
+.set-row .set-info strong{display:block;font-size:14px;font-weight:700}
+.set-row .set-info span{font-size:12.5px;color:var(--text-muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-alt);border:1px solid var(--borda);padding:4px 8px 4px 10px;border-radius:6px;font-size:12.5px}
+.chip button{border:none;background:none;color:var(--text-fraco);font-size:15px;line-height:1;padding:0}
+.chip button:hover{color:var(--perigo)}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;background:rgba(15,31,54,.5);z-index:80;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-b{background:var(--surface);border:1px solid var(--borda);border-radius:var(--radius);max-width:420px;width:100%;padding:22px;box-shadow:var(--sombra)}
+.modal-b h3{font-size:18px;font-weight:800;margin-bottom:6px}
+.modal-b p{font-size:13.5px;color:var(--text-muted);margin-bottom:16px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--azul);color:var(--senai-text);padding:11px 18px;border-radius:8px;font-size:13.5px;font-weight:600;z-index:90;box-shadow:var(--sombra);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+.toast.err{background:var(--perigo);color:#fff}
+
+/* ---------- rodapé ---------- */
+.rodape{max-width:1160px;margin:0 auto;padding:18px 22px 30px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:11.5px;color:var(--text-fraco);border-top:1px solid var(--borda-suave)}
+.rodape .mono{font-family:'JetBrains Mono',monospace}
+
+/* ---------- responsivo ---------- */
+@media (max-width:860px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .grid-2{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .topbar-in{padding:10px 16px}
+  main{padding:16px 16px 50px}
+  .tabs{padding:10px 16px 0}
+  .greet h1{font-size:23px}
+  .pessoa{grid-template-columns:1fr}
+  .pessoa .pessoa-actions{justify-self:stretch}
+  .pessoa .pessoa-actions .btn{width:100%}
+  .stat .num{font-size:22px}
+  .bar-row{grid-template-columns:90px 1fr 40px}
+}
+
+/* ---------- impressão / PDF ---------- */
+#print-root{display:none}
+@media print{
+  .topbar,.tabs,main,.rodape,.toast,.modal{display:none !important}
+  #print-root{display:block;padding:24px;color:#0F1F36;background:#fff}
+  #print-root h1{font-size:20px;margin-bottom:4px}
+  #print-root h2{font-size:14px;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.5px;color:#5A6678}
+  #print-root table{width:100%;border-collapse:collapse;font-size:11px}
+  #print-root th,#print-root td{border:1px solid #D8D3C5;padding:6px 8px;text-align:left}
+  #print-root th{background:#EDEAE0}
+  #print-root .meta{font-size:11px;color:#5A6678;margin-bottom:14px}
+  #print-root .kpis{display:flex;gap:24px;margin:10px 0 14px;flex-wrap:wrap}
+  #print-root .kpi .v{font-size:18px;font-weight:800}
+  #print-root .kpi .l{font-size:10px;color:#5A6678;text-transform:uppercase}
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="marca-grupo">
+        <span class="selo-senai">SENAI</span>
+        <span class="marca-nome">Biblioteca</span>
+        <span class="marca-sub">/ Painel</span>
+      </div>
+      <div class="topbar-right">
+        <span class="clock mono" id="clock">--:--:--</span>
+        <span class="sync-pill" id="sync-pill" title="Sincronização com o check-in">
+          <span class="sync-dot off" id="sync-dot"></span>
+          <span id="sync-txt">sem conexão</span>
+        </span>
+        <button type="button" class="icon-btn" id="btn-tema" aria-label="Alternar tema">
+          <svg class="icone-lua" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg class="icone-sol" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <span id="texto-tema">Escuro</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="historico">Histórico</button>
+    <button class="tab" data-tab="alunos">Alunos</button>
+    <button class="tab" data-tab="relatorio">Relatório</button>
+    <button class="tab" data-tab="config">Configurações</button>
+  </nav>
+
+  <main>
+    <!-- ============ HISTÓRICO ============ -->
+    <section id="tab-historico" class="tab-panel active">
+      <div id="banner-conexao"></div>
+      <div class="greet">
+        <div>
+          <span class="kicker">Registro de entradas</span>
+          <h1 class="section-title" style="margin:6px 0 0">Histórico de presenças</h1>
+          <p class="section-sub" style="margin-bottom:0">Todas as entradas registradas — pelo check-in ou manualmente aqui.</p>
+        </div>
+        <div class="greet-actions">
+          <button class="btn btn-sm" id="btn-manual">＋ Registrar entrada</button>
+          <button class="btn btn-sm" id="btn-atualizar">↻ Atualizar agora</button>
+        </div>
+      </div>
+      <div class="filtros">
+        <div class="campo"><label>De</label><input type="date" id="hist-de"></div>
+        <div class="campo"><label>Até</label><input type="date" id="hist-ate"></div>
+        <div class="campo"><label>Buscar</label><input type="search" id="hist-busca" placeholder="Nome, turma, atividade…"></div>
+        <button class="btn btn-sm" id="hist-limpar">Limpar filtros</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>Entrada</th><th>Nome</th><th>Turma</th><th>Atividade</th><th></th>
+          </tr></thead>
+          <tbody id="hist-corpo"></tbody>
+        </table>
+      </div>
+      <p class="fraco" style="margin-top:10px;font-size:12.5px" id="hist-totais"></p>
+    </section>
+
+    <!-- ============ ALUNOS ============ -->
+    <section id="tab-alunos" class="tab-panel">
+      <span class="kicker">Cadastro de frequentadores</span>
+      <h1 class="section-title" style="margin-top:6px">Alunos &amp; visitantes</h1>
+      <p class="section-sub">Quem faz check-in é cadastrado automaticamente. Você também pode adicionar ou ajustar manualmente.</p>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-pad">
+          <form id="form-aluno" class="form-row">
+            <div class="campo"><label>Nome completo</label><input type="text" id="al-nome" placeholder="Ex.: Maria Santos Silva" required></div>
+            <div class="campo"><label>Turma / curso</label><select id="al-turma" required></select></div>
+            <button type="submit" class="btn btn-primary">+ Adicionar</button>
+          </form>
+        </div>
+      </div>
+      <div class="filtros">
+        <div class="campo"><label>Buscar aluno</label><input type="search" id="alu-busca" placeholder="Nome ou turma…"></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Nome</th><th>Turma</th><th class="mono">Visitas</th><th>Última visita</th><th></th></tr></thead>
+          <tbody id="alu-corpo"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ RELATÓRIO ============ -->
+    <section id="tab-relatorio" class="tab-panel">
+      <span class="kicker">Indicadores de uso</span>
+      <h1 class="section-title" style="margin-top:6px">Relatório</h1>
+      <p class="section-sub">Entradas, atividades e horários de pico no período selecionado.</p>
+      <div class="filtros">
+        <div class="campo"><label>De</label><input type="date" id="rel-de"></div>
+        <div class="campo"><label>Até</label><input type="date" id="rel-ate"></div>
+        <button class="btn btn-sm" id="rel-hoje">Hoje</button>
+        <button class="btn btn-sm" id="rel-7">7 dias</button>
+        <button class="btn btn-sm" id="rel-30">30 dias</button>
+        <button class="btn btn-sm" id="rel-tudo">Tudo</button>
+        <button class="btn btn-ciano btn-sm" id="rel-pdf" style="margin-left:auto">⤓ Imprimir / salvar PDF</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="kicker">Check-ins</span><div class="num" id="r-total">0</div><div class="sub">no período</div></div>
+        <div class="stat"><span class="kicker">Pessoas únicas</span><div class="num" id="r-unicas">0</div><div class="sub">nomes diferentes</div></div>
+        <div class="stat"><span class="kicker">Pico</span><div class="num" id="r-pico">—</div><div class="sub" id="r-pico-sub">horário</div></div>
+        <div class="stat"><span class="kicker">Hoje</span><div class="num" id="r-hoje">0</div><div class="sub">entradas hoje</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><div class="card-pad">
+          <span class="kicker">Por atividade</span>
+          <h3 class="section-title" style="margin:6px 0 14px;font-size:15px">Distribuição</h3>
+          <div class="bars" id="bars-atividade"></div>
+        </div></div>
+        <div class="card"><div class="card-pad">
+          <span class="kicker">Por turma</span>
+          <h3 class="section-title" style="margin:6px 0 14px;font-size:15px">Distribuição</h3>
+          <div class="bars" id="bars-turma"></div>
+        </div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><div class="card-pad">
+        <span class="kicker">Fluxo por hora</span>
+        <h3 class="section-title" style="margin:6px 0 14px;font-size:15px">Entradas ao longo do dia</h3>
+        <div class="bars" id="bars-hora"></div>
+      </div></div>
+    </section>
+
+    <!-- ============ CONFIGURAÇÕES ============ -->
+    <section id="tab-config" class="tab-panel">
+      <span class="kicker">Ajustes do painel</span>
+      <h1 class="section-title" style="margin-top:6px">Configurações</h1>
+      <p class="section-sub">Conexão com o check-in, turmas, backup dos dados e manutenção.</p>
+
+      <div class="card"><div class="card-pad">
+        <span class="kicker">Sincronização</span>
+        <h3 class="section-title" style="margin:6px 0 6px;font-size:16px">Conexão com o check-in</h3>
+        <p class="muted" style="font-size:13.5px;margin-bottom:14px;max-width:62ch">
+          Serviço gratuito <strong>textdb.dev</strong> — sem cadastro, sem e-mail, sem pagamento. Os check-ins feitos no outro computador aparecem aqui em tempo real (a cada 5 segundos).
+        </p>
+        <div id="config-sync"></div>
+      </div></div>
+
+      <div class="card"><div class="card-pad">
+        <span class="kicker">Turmas</span>
+        <h3 class="section-title" style="margin:6px 0 14px;font-size:16px">Lista de turmas / cursos</h3>
+        <div class="chips" id="chips-turmas" style="margin-bottom:12px"></div>
+        <form id="form-turma" style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="turma-nova" placeholder="Nome da turma…" style="flex:1;min-width:220px">
+          <button class="btn btn-sm" type="submit">+ Adicionar turma</button>
+        </form>
+        <p class="fraco" style="font-size:12px;margin-top:10px">As turmas definidas aqui aparecem automaticamente no select do check-in.</p>
+      </div></div>
+
+      <div class="card"><div class="card-pad">
+        <span class="kicker">Backup JSON</span>
+        <h3 class="section-title" style="margin:6px 0 14px;font-size:16px">Guardar e restaurar dados</h3>
+        <p class="muted" style="font-size:13.5px;margin-bottom:12px;max-width:62ch">Toda a base (alunos, presenças, configurações) é um único JSON. Exporte para guardar uma cópia ou transferir entre máquinas.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" id="btn-export">⤓ Exportar JSON</button>
+          <label class="btn" for="imp-json">⤒ Importar JSON</label>
+          <input type="file" id="imp-json" accept="application/json,.json" class="hidden">
+        </div>
+      </div></div>
+
+      <div class="card"><div class="card-pad">
+        <span class="kicker perigo">Manutenção</span>
+        <h3 class="section-title" style="margin:6px 0 14px;font-size:16px">Dados de exemplo &amp; limpeza</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" id="btn-demo">Carregar dados de exemplo</button>
+          <button class="btn btn-danger" id="btn-limpar">Limpar tudo (zerar base)</button>
+        </div>
+      </div></div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <span>SENAI · Biblioteca Morvan Figueiredo · Painel da Dona Silvia</span>
+    <span class="mono">v 2.0 · textdb.dev</span>
+  </footer>
+</div>
+
+<!-- raiz para impressão/PDF -->
+<div id="print-root"></div>
+
+<!-- modal genérico -->
+<div class="modal hidden" id="modal"><div class="modal-b" id="modal-b"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   MOTOR DO PAINEL — armazenamento local + sincronização JSON
+   Protocolo idêntico ao check-in (mesma schema em textdb.dev).
+   ============================================================ */
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const escH = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const nowISO = () => new Date().toISOString();
+const hojeLocal = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+
+/* ---------- store (localStorage com try/catch) ---------- */
+const store = {
+  get(k){ try{return localStorage.getItem(k);}catch(e){return null;} },
+  set(k,v){ try{localStorage.setItem(k,v);}catch(e){} },
+  del(k){ try{localStorage.removeItem(k);}catch(e){} }
+};
+
+/* ---------- DB ---------- */
+const TURMAS_PADRAO = [
+  "CAI — Auxiliar Administrativo",
+  "CAI — Mecânico de Refrigeração e Ar Condicionado",
+  "Curso Técnico em Programação de Jogos Digitais",
+  "Curso Técnico em Desenvolvimento de Sistemas",
+  "Curso Técnico em Logística",
+  "FIC — Formação Inicial e Continuada",
+  "Cliente externo / Docente / Ex-aluno / Colaborador / Outros"
+];
+const ATIVS = ["Leitura","Estudo","Jogos","Empréstimo"];
+
+const DB = {
+  KEY:"bs_panel_db_v2",
+  data:null,
+  empty(){
+    return {schemaVersion:1, settings:{turmas:TURMAS_PADRAO.slice()}, students:[], checkins:[], tombstones:[], studentTombstones:[]};
+  },
+  garantir(doc){
+    doc = doc || this.empty();
+    if(!doc || typeof doc!=="object") doc=this.empty();
+    if(!Array.isArray(doc.checkins)) doc.checkins=[];
+    if(!Array.isArray(doc.students)) doc.students=[];
+    if(!Array.isArray(doc.tombstones)) doc.tombstones=[];
+    if(!Array.isArray(doc.studentTombstones)) doc.studentTombstones=[];
+    if(!doc.settings || typeof doc.settings!=="object") doc.settings={};
+    if(!Array.isArray(doc.settings.turmas) || !doc.settings.turmas.length) doc.settings.turmas=TURMAS_PADRAO.slice();
+    return doc;
+  },
+  load(){
+    try{ this.data = this.garantir(JSON.parse(store.get(this.KEY)||"null")); }
+    catch(e){ this.data = this.empty(); }
+    return this.data;
+  },
+  persist(){ try{ store.set(this.KEY, JSON.stringify(this.data)); }catch(e){} },
+  /* união por id / nameKey; mais recente (updatedAt) vence; respeita tombstones */
+  merge(local, remote){
+    const L=this.garantir(local), R=this.garantir(remote);
+    const out=this.empty();
+    out.settings.turmas = unionOrd(L.settings.turmas, R.settings.turmas);
+    const tIds = new Set([...(L.tombstones||[]),...(R.tombstones||[])].map(t=>t&&t.id).filter(Boolean));
+    const sTomb = new Set([...(L.studentTombstones||[]),...(R.studentTombstones||[])].map(t=>t&&t.nameKey).filter(Boolean));
+    out.tombstones = [...tIds].map(id=>({id}));
+    out.studentTombstones = [...sTomb].map(nameKey=>({nameKey}));
+    // checkins
+    const cmap={};
+    for(const c of L.checkins) if(c&&c.id&&!tIds.has(c.id)) cmap[c.id]=c;
+    for(const c of R.checkins){ if(!c||!c.id||tIds.has(c.id)) continue; const ex=cmap[c.id]; if(!ex||new Date(c.updatedAt||0)>new Date(ex.updatedAt||0)) cmap[c.id]=c; }
+    out.checkins=Object.values(cmap).sort((a,b)=>(a.entryAt||"").localeCompare(b.entryAt||""));
+    // students
+    const smap={};
+    for(const s of L.students) if(s&&s.nameKey&&!sTomb.has(s.nameKey)) smap[s.nameKey]=s;
+    for(const s of R.students){ if(!s||!s.nameKey||sTomb.has(s.nameKey)) continue; const ex=smap[s.nameKey]; if(!ex||new Date(s.updatedAt||0)>new Date(ex.updatedAt||0)) smap[s.nameKey]=s; }
+    out.students=Object.values(smap).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+    return out;
+  }
+};
+function unionOrd(a,b){ const out=[...(a||[])]; for(const x of (b||[])) if(!out.includes(x)) out.push(x); return out; }
+
+/* ---------- SYNC (textdb.dev) ---------- */
+const SYNC = {
+  timer:null, pushTimer:null, busy:false, lastOk:null, lastErr:null,
+  code(){ return (store.get("bs_sync_code")||"").trim(); },
+  setCode(c){ c=(c||"").trim(); if(c) store.set("bs_sync_code",c); else store.del("bs_sync_code"); },
+  url(){ const c=this.code(); return c ? "https://textdb.dev/api/data/"+encodeURIComponent(c) : null; },
+  enabled(){ return !!this.url(); },
+  limpar(v){ let c=String(v||"").trim(); const m=c.match(/textdb\.dev\/api\/data\/([A-Za-z0-9._-]+)/i); if(m) c=m[1]; return c.replace(/^https?:\/\/[^\/]+\//i,"").replace(/\/$/,"").trim(); },
+  async createBucket(){
+    const abc="abcdefghjkmnpqrstuvwxyz23456789";
+    let c; do{ c="senai-bib-"+Array.from({length:12},()=>abc[Math.floor(Math.random()*abc.length)]).join(""); }while(!/^[A-Za-z0-9._-]{4,80}$/.test(c));
+    const r=await fetch("https://textdb.dev/api/data/"+encodeURIComponent(c),{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(DB.data)});
+    if(!r.ok) throw new Error("Erro ao criar código ("+r.status+")");
+    return c;
+  },
+  async pull(){
+    const r=await fetch(this.url(),{cache:"no-store"});
+    if(!r.ok) throw new Error("Falha ao ler ("+r.status+")");
+    const txt=(await r.text()).trim();
+    if(!txt) return null;
+    let rem; try{ rem=JSON.parse(txt); }catch(e){ throw new Error("Dados da nuvem inválidos"); }
+    return DB.garantir(rem);
+  },
+  async push(doc){
+    const r=await fetch(this.url(),{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(doc||DB.data)});
+    if(!r.ok) throw new Error("Falha ao enviar ("+r.status+")");
+  },
+  async syncOnce(){
+    if(!this.enabled()||this.busy) return null;
+    this.busy=true;
+    try{
+      const local=JSON.parse(JSON.stringify(DB.data));
+      const remote=await this.pull();
+      let status;
+      if(!remote){ await this.push(local); status="criado"; }
+      else{
+        const merged=DB.merge(local,remote);
+        const sameLocal=JSON.stringify(merged)===JSON.stringify(local);
+        const sameRemote=JSON.stringify(merged)===JSON.stringify(remote);
+        if(!sameLocal){ DB.data=merged; DB.persist(); }
+        if(!sameRemote){ await this.push(merged); }
+        status=(sameLocal&&sameRemote)?"inalterado":"sincronizado";
+      }
+      this.lastOk=new Date(); this.lastErr=null;
+      return status;
+    }catch(e){
+      this.lastErr=(e&&e.message)?e.message:String(e);
+      throw e;
+    }finally{ this.busy=false; }
+  },
+  schedulePush(){
+    if(!this.enabled()) return;
+    clearTimeout(this.pushTimer);
+    this.pushTimer=setTimeout(()=>{
+      this.syncOnce().then(s=>{updateSyncUI(); if(s&&s!=="inalterado") render();}).catch(()=>updateSyncUI());
+    },1200);
+  },
+  startPolling(){
+    clearInterval(this.timer);
+    this.timer=setInterval(()=>{
+      if(!this.enabled()) return;
+      this.syncOnce().then(s=>{updateSyncUI(); if(s&&s!=="inalterado") render();}).catch(()=>updateSyncUI());
+    },5000);
+  }
+};
+
+/* ---------- estado ---------- */
+const state={tab:"historico", histDe:null, histAte:null, histBusca:"", aluBusca:"", relDe:null, relAte:null};
+
+/* ---------- helpers de data ---------- */
+function fmtHora(iso){ if(!iso) return "—"; const d=new Date(iso); if(isNaN(d)) return "—"; return d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}); }
+function fmtData(iso){ if(!iso) return "—"; const d=new Date(iso); if(isNaN(d)) return "—"; return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"}); }
+function fmtDataHora(iso){ if(!iso) return "—"; return fmtData(iso)+" "+fmtHora(iso); }
+function hojeISODate(){ return hojeLocal(); }
+function mesmoDia(iso, dateStr){ if(!iso) return false; const d=new Date(iso); if(isNaN(d)) return false; return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")===dateStr; }
+function entreDatas(iso, de, ate){ if(!iso) return false; const d=new Date(iso); if(isNaN(d)) return false; const ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); if(de&&ds<de) return false; if(ate&&ds>ate) return false; return true; }
+
+/* ---------- ações de dados ---------- */
+function addStudent(nome, turma){
+  const nk=norm(nome); if(!nk) return;
+  if(DB.data.students.some(s=>s.nameKey===nk)) { editStudentT(nk, turma); return; }
+  const t=nowISO();
+  DB.data.students.push({id:uid(),nameKey:nk,name:nome.trim(),turma:turma||"",notes:"",manual:true,createdAt:t,updatedAt:t,device:"painel"});
+  DB.persist(); SYNC.schedulePush();
+}
+function editStudentT(nk, turma){
+  const s=DB.data.students.find(x=>x.nameKey===nk); if(!s) return;
+  s.turma=turma||s.turma; s.updatedAt=nowISO(); s.device="painel"; DB.persist(); SYNC.schedulePush();
+}
+function delStudent(nk){
+  DB.data.students=DB.data.students.filter(s=>s.nameKey!==nk);
+  DB.data.studentTombstones=unionOrd(DB.data.studentTombstones.map(x=>x.nameKey),[nk]).map(nameKey=>({nameKey}));
+  DB.persist(); SYNC.schedulePush(); render();
+}
+function delCheckin(id){
+  DB.data.checkins=DB.data.checkins.filter(x=>x.id!==id);
+  DB.data.tombstones=unionOrd(DB.data.tombstones.map(x=>x.id),[id]).map(id=>({id}));
+  DB.persist(); SYNC.schedulePush(); render();
+}
+function addTurma(nome){ nome=(nome||"").trim(); if(!nome) return; if(!DB.data.settings.turmas.includes(nome)){ DB.data.settings.turmas.push(nome); DB.persist(); SYNC.schedulePush(); render(); } }
+function delTurma(nome){ DB.data.settings.turmas=DB.data.settings.turmas.filter(t=>t!==nome); DB.persist(); SYNC.schedulePush(); render(); }
+
+/* ---------- render ---------- */
+function render(){
+  const tab=state.tab;
+  $$(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
+  $$(".tab-panel").forEach(p=>p.classList.toggle("active", p.id==="tab-"+tab));
+  if(tab==="historico") renderHistorico();
+  else if(tab==="alunos") renderAlunos();
+  else if(tab==="relatorio") renderRelatorio();
+  else if(tab==="config") renderConfig();
+}
+
+function renderHistorico(){
+  // banner de conexão se não habilitado
+  const bn=$("#banner-conexao");
+  if(!SYNC.enabled()){
+    bn.innerHTML = `<div class="banner">
+      <span class="kicker">Primeiro passo</span>
+      <h3>Conecte o check-in da biblioteca a este painel</h3>
+      <p>Para que as entradas feitas no celular apareçam aqui automaticamente, crie um código de conexão e use-o uma vez no aparelho do check-in. Leva menos de um minuto — sem e-mail e sem cadastro.</p>
+      <div class="botoes">
+        <button class="btn btn-primary" id="bn-criar">Criar código de conexão →</button>
+        <button class="btn btn-sm" id="bn-colar">Já tenho um código</button>
+      </div>
+    </div>`;
+    $("#bn-criar").onclick=()=>acaoCriarCodigo();
+    $("#bn-colar").onclick=()=>acaoColarCodigo();
+  } else { bn.innerHTML=""; }
+
+  const de=state.histDe, ate=state.histAte, busca=norm(state.histBusca);
+  let lista=DB.data.checkins.slice().sort((a,b)=>(b.entryAt||"").localeCompare(a.entryAt||""));
+  if(de||ate) lista=lista.filter(c=>entreDatas(c.entryAt,de,ate));
+  if(busca) lista=lista.filter(c=>norm(c.name+" "+c.turma+" "+c.atividade).includes(busca));
+  const corpo=$("#hist-corpo");
+  if(!lista.length){
+    corpo.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-fraco);padding:28px">Nenhum registro no período.</td></tr>`;
+    $("#hist-totais").textContent="";
+    return;
+  }
+  corpo.innerHTML=lista.map(c=>`<tr>
+    <td class="mono">${fmtDataHora(c.entryAt)}</td>
+    <td class="nm">${escH(c.name)}</td>
+    <td>${escH(c.turma||"—")}</td>
+    <td>${c.atividade?`<span class="tag ${(c.atividade).toLowerCase()}">${escH(c.atividade)}</span>`:"—"}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="confirmaDel('${escH(c.id)}')">Excluir</button></td>
+  </tr>`).join("");
+  $("#hist-totais").textContent=`${lista.length} registro(s)`;
+}
+
+function renderAlunos(){
+  // select de turmas no form
+  const sel=$("#al-turma");
+  sel.innerHTML=`<option value="" disabled selected>Selecione...</option>`+DB.data.settings.turmas.map(t=>`<option value="${escH(t)}">${escH(t)}</option>`).join("");
+  const busca=norm(state.aluBusca);
+  let lista=DB.data.students.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  if(busca) lista=lista.filter(s=>norm(s.name+" "+s.turma).includes(busca));
+  const corpo=$("#alu-corpo");
+  if(!lista.length){
+    corpo.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text-fraco);padding:28px">Nenhum aluno cadastrado. Quem faz check-in é adicionado sozinho.</td></tr>`;
+    return;
+  }
+  corpo.innerHTML=lista.map(s=>{
+    const visits=DB.data.checkins.filter(c=>c.nameKey===s.nameKey);
+    const ultima=visits.map(c=>c.entryAt).sort().slice(-1)[0];
+    return `<tr>
+      <td class="nm">${escH(s.name)} ${s.manual?'<span class="tag emprestimo">manual</span>':''}</td>
+      <td>${escH(s.turma||"—")}</td>
+      <td class="mono">${visits.length}</td>
+      <td class="mono">${ultima?fmtData(ultima):"—"}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="confirmaDelAluno('${escH(s.nameKey)}')">Excluir</button></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderRelatorio(){
+  const de=state.relDe, ate=state.relAte;
+  let lista=DB.data.checkins.filter(c=>entreDatas(c.entryAt,de,ate));
+  $("#r-total").textContent=lista.length;
+  const unicas=new Set(lista.map(c=>norm(c.name))).size;
+  $("#r-unicas").textContent=unicas;
+  // entradas hoje
+  $("#r-hoje").textContent=DB.data.checkins.filter(c=>mesmoDia(c.entryAt,hojeLocal())).length;
+  // pico por hora
+  const horas={}; lista.forEach(c=>{ const h=new Date(c.entryAt).getHours(); if(!isNaN(h)) horas[h]=(horas[h]||0)+1; });
+  const pico=Object.entries(horas).sort((a,b)=>b[1]-a[1])[0];
+  $("#r-pico").textContent=pico?String(pico[0]).padStart(2,"0")+"h":"—";
+  $("#r-pico-sub").textContent=pico?`entradas: ${pico[1]}`:"sem dados";
+  // barras atividade
+  barras("#bars-atividade", ATIVS.map(a=>({lbl:a, vl:lista.filter(c=>c.atividade===a).length})));
+  // barras turma
+  const turmas={}; lista.forEach(c=>{ if(c.turma) turmas[c.turma]=(turmas[c.turma]||0)+1; });
+  barras("#bars-turma", Object.entries(turmas).map(([lbl,vl])=>({lbl,vl})).sort((a,b)=>b.vl-a.vl));
+  // barras por hora (7h–22h)
+  const harr=[]; for(let h=7;h<=22;h++){ harr.push({lbl:String(h).padStart(2,"0")+"h", vl:horas[h]||0}); }
+  barras("#bars-hora", harr);
+}
+function barras(sel, items){
+  const max=Math.max(1,...items.map(i=>i.vl));
+  const el=$(sel);
+  if(!items.length||items.every(i=>!i.vl)){ el.innerHTML=`<div class="fraco" style="font-size:13px;padding:6px 0">Sem dados no período.</div>`; return; }
+  el.innerHTML=items.map(i=>`<div class="bar-row">
+    <span class="lbl" title="${escH(i.lbl)}">${escH(i.lbl)}</span>
+    <div class="bar-track"><div class="bar-fill" style="width:${Math.round(i.vl/max*100)}%"></div></div>
+    <span class="vl">${i.vl}</span>
+  </div>`).join("");
+}
+
+function renderConfig(){
+  const cs=$("#config-sync");
+  if(SYNC.enabled()){
+    const c=SYNC.code();
+    const link=montarLinkCheckin(c);
+    cs.innerHTML=`
+      <div class="set-row">
+        <div class="set-info"><strong>Status</strong><span id="cfg-status">${SYNC.lastErr?`<span style="color:var(--perigo)">Sem conexão agora — os dados locais sincronizam quando voltar.</span>`:`<span style="color:var(--verde)">● Conectado — atualiza a cada 5 s`}</span></span></div>
+        <button class="btn btn-sm" id="cfg-sync-now">Sincronizar agora</button>
+      </div>
+      <div class="set-row">
+        <div class="set-info"><strong>Código de conexão</strong><span>Use este código no check-in (uma vez só).</span></div>
+        <span class="code-box">${escH(c)}</span>
+        <button class="btn btn-sm" id="cfg-copy">Copiar código</button>
+      </div>
+      <div class="set-row">
+        <div class="set-info"><strong>Link pronto do check-in</strong><span>Abra este endereço no computador do check-in — já vem com o código embutido.</span></div>
+        <span class="code-box" style="font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escH(link)}">${escH(link)}</span>
+        <button class="btn btn-sm" id="cfg-copy-link">Copiar link</button>
+      </div>
+      <div class="set-row">
+        <div class="set-info"><strong>Trocar de código</strong><span>Gera um novo código (os dados atuais são mantidos).</span></div>
+        <button class="btn btn-sm" id="cfg-new">Gerar novo código</button>
+        <button class="btn btn-danger btn-sm" id="cfg-desconectar">Desconectar</button>
+      </div>`;
+    $("#cfg-sync-now").onclick=()=>SYNC.syncOnce().then(s=>{updateSyncUI(); render(); toast("Sincronizado.");}).catch(()=>{updateSyncUI(); toast("Sem conexão agora.","err");});
+    $("#cfg-copy").onclick=()=>copia(c,"Código copiado.");
+    $("#cfg-copy-link").onclick=()=>copia(link,"Link copiado.");
+    $("#cfg-new").onclick=()=>acaoCriarCodigo();
+    $("#cfg-desconectar").onclick=()=>{ if(confirm("Desconectar do check-in? Os dados continuam salvos neste painel.")){ SYNC.setCode(""); updateSyncUI(); render(); } };
+  } else {
+    cs.innerHTML=`
+      <div class="set-row">
+        <div class="set-info"><strong>Não conectado</strong><span>Crie um código e use-o uma vez no check-in para receber as presenças aqui.</span></div>
+        <button class="btn btn-primary" id="cfg-criar">Criar código de conexão →</button>
+        <button class="btn btn-sm" id="cfg-colar">Colar código existente</button>
+      </div>`;
+    $("#cfg-criar").onclick=()=>acaoCriarCodigo();
+    $("#cfg-colar").onclick=()=>acaoColarCodigo();
+  }
+  // chips de turmas
+  $("#chips-turmas").innerHTML=DB.data.settings.turmas.map(t=>`<span class="chip">${escH(t)} <button onclick="delTurma('${escH(t).replace(/'/g,"\\'")}')">×</button></span>`).join("") || `<span class="fraco">Nenhuma turma.</span>`;
+}
+function montarLinkCheckin(c){
+  // descobre a base relativa ao painel
+  const base=location.href.replace(/painel-administrativo\.html.*$/i,"");
+  return base+"site-checkin/index.html?sync="+encodeURIComponent(c);
+}
+
+/* ---------- ações sync ---------- */
+async function acaoCriarCodigo(){
+  toast("Criando código…");
+  try{
+    const c=await SYNC.createBucket();
+    SYNC.setCode(c);
+    SYNC.startPolling();
+    updateSyncUI();
+    render();
+    toast("Código criado! Copie-o e use no check-in.");
+  }catch(e){ toast(e.message||"Falha ao criar código.","err"); }
+}
+function acaoColarCodigo(){
+  const bruto=prompt("Cole o código de sincronização (só o código, ou o endereço inteiro — ambos servem):")||"";
+  const c=SYNC.limpar(bruto);
+  if(c && /^[A-Za-z0-9._-]{4,80}$/.test(c)){
+    SYNC.setCode(c);
+    SYNC.syncOnce().then(s=>{ SYNC.startPolling(); updateSyncUI(); render(); toast("Conectado!"); }).catch(()=>{ updateSyncUI(); render(); toast("Código salvo. Conectando…","err"); });
+  } else if(bruto.trim()){
+    toast("Código inválido.","err");
+  }
+}
+
+/* ---------- sync UI ---------- */
+function updateSyncUI(){
+  const dot=$("#sync-dot"), txt=$("#sync-txt");
+  if(!SYNC.enabled()){ dot.className="sync-dot off"; txt.textContent="sem conexão"; return; }
+  if(SYNC.lastErr){ dot.className="sync-dot err"; txt.textContent="sem conexão agora"; }
+  else { dot.className="sync-dot on"; txt.textContent="conectado · tempo real"; }
+}
+
+/* ---------- utilidades UI ---------- */
+let toastTimer=null;
+function toast(msg, tipo){
+  const t=$("#toast"); t.textContent=msg; t.className="toast show"+(tipo==="err"?" err":"");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.className="toast",2600);
+}
+async function copia(texto, okMsg){
+  try{ await navigator.clipboard.writeText(texto); toast(okMsg||"Copiado."); }
+  catch(e){ // fallback
+    const ta=document.createElement("textarea"); ta.value=texto; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); toast(okMsg||"Copiado."); }catch(_){ toast("Copie manualmente: "+texto); }
+    document.body.removeChild(ta);
+  }
+}
+function confirmaDel(id){ if(confirm("Excluir este registro de presença?")) delCheckin(id); }
+function confirmaDelAluno(nk){ if(confirm("Excluir este aluno do cadastro? (presenças antigas continuam no histórico)")) delStudent(nk); }
+
+/* ---------- modal & check-in manual ---------- */
+function abrirModal(html){ $("#modal-b").innerHTML=html; $("#modal").classList.remove("hidden"); }
+function fecharModal(){ $("#modal").classList.add("hidden"); $("#modal-b").innerHTML=""; }
+$("#modal").addEventListener("click",e=>{ if(e.target.id==="modal") fecharModal(); });
+function addCheckinManual(nome, turma, atividade){
+  const nk=norm(nome); if(!nk){ toast("Informe o nome.","err"); return; }
+  const t=nowISO();
+  if(!DB.data.students.some(s=>s.nameKey===nk)) DB.data.students.push({id:uid(),nameKey:nk,name:nome.trim(),turma:turma||"",notes:"",manual:true,createdAt:t,updatedAt:t,device:"painel"});
+  else editStudentT(nk, turma);
+  DB.data.checkins.push({id:uid(),nameKey:nk,name:nome.trim(),turma:turma||"",atividade:atividade||"Leitura",entryAt:t,local:"Balcão (manual)",updatedAt:t,device:"painel"});
+  DB.persist(); SYNC.schedulePush(); render(); toast("Entrada registrada.");
+}
+function abrirModalCheckin(){
+  const opts=DB.data.settings.turmas.map(t=>`<option value="${escH(t)}">${escH(t)}</option>`).join("");
+  abrirModal(`
+    <h3>Registrar entrada manual</h3>
+    <p>Para quando alguém entra sem passar pelo check-in.</p>
+    <div class="campo" style="margin-bottom:12px"><label>Nome completo</label><input type="text" id="mc-nome" placeholder="Ex.: Maria Santos Silva" style="width:100%"></div>
+    <div class="campo" style="margin-bottom:12px"><label>Turma / curso</label><select id="mc-turma" style="width:100%">${opts}</select></div>
+    <div class="campo" style="margin-bottom:16px"><label>Atividade</label><select id="mc-ativ" style="width:100%">${ATIVS.map(a=>`<option value="${a}">${a}</option>`).join("")}</select></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" id="mc-ok">Confirmar entrada →</button>
+    </div>`);
+  $("#mc-ok").onclick=()=>{ const n=$("#mc-nome").value.trim(), t=$("#mc-turma").value, a=$("#mc-ativ").value; if(!n){toast("Informe o nome.","err");return;} fecharModal(); addCheckinManual(n,t,a); };
+  setTimeout(()=>$("#mc-nome").focus(),50);
+}
+
+/* ---------- tema ---------- */
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme",t);
+  store.set("bs_theme",t);
+  $("#texto-tema").textContent=t==="dark"?"Claro":"Escuro";
+}
+$("#btn-tema").addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  applyTheme(cur==="dark"?"light":"dark");
+  render();
+});
+
+/* ---------- tabs ---------- */
+$$(".tab").forEach(t=>t.addEventListener("click",()=>{ state.tab=t.dataset.tab; render(); }));
+
+/* ---------- filtros ---------- */
+$("#hist-de").addEventListener("change",e=>{state.histDe=e.target.value||null; renderHistorico();});
+$("#hist-ate").addEventListener("change",e=>{state.histAte=e.target.value||null; renderHistorico();});
+$("#hist-busca").addEventListener("input",e=>{state.histBusca=e.target.value; renderHistorico();});
+$("#hist-limpar").addEventListener("click",()=>{ state.histDe=state.histAte=null; state.histBusca=""; $("#hist-de").value=$("#hist-ate").value=$("#hist-busca").value=""; renderHistorico(); });
+$("#alu-busca").addEventListener("input",e=>{state.aluBusca=e.target.value; renderAlunos();});
+$("#form-aluno").addEventListener("submit",e=>{ e.preventDefault(); const n=$("#al-nome").value.trim(), t=$("#al-turma").value; if(!n||!t){toast("Preencha nome e turma.","err");return;} addStudent(n,t); $("#al-nome").value=""; $("#al-turma").value=""; render(); toast("Aluno adicionado."); });
+$("#form-turma").addEventListener("submit",e=>{ e.preventDefault(); const v=$("#turma-nova").value.trim(); if(v){ addTurma(v); $("#turma-nova").value=""; } });
+$("#btn-atualizar").addEventListener("click",()=>{ if(SYNC.enabled()){ SYNC.syncOnce().then(s=>{updateSyncUI(); if(s&&s!=="inalterado") render(); toast("Atualizado.");}).catch(()=>{updateSyncUI(); toast("Sem conexão agora.","err");}); } else { render(); toast("Crie o código de conexão primeiro.","err"); } });
+$("#btn-manual").addEventListener("click",abrirModalCheckin);
+
+/* ---------- relatório datas ---------- */
+function setRelRange(de,ate){ state.relDe=de; state.relAte=ate; $("#rel-de").value=de||""; $("#rel-ate").value=ate||""; renderRelatorio(); }
+$("#rel-de").addEventListener("change",e=>{state.relDe=e.target.value||null; renderRelatorio();});
+$("#rel-ate").addEventListener("change",e=>{state.relAte=e.target.value||null; renderRelatorio();});
+$("#rel-hoje").addEventListener("click",()=>setRelRange(hojeLocal(),hojeLocal()));
+$("#rel-7").addEventListener("click",()=>{ const d=new Date(); d.setDate(d.getDate()-6); setRelRange(d.toISOString().slice(0,10),hojeLocal()); });
+$("#rel-30").addEventListener("click",()=>{ const d=new Date(); d.setDate(d.getDate()-29); setRelRange(d.toISOString().slice(0,10),hojeLocal()); });
+$("#rel-tudo").addEventListener("click",()=>setRelRange(null,null));
+$("#rel-pdf").addEventListener("click",gerarPDF);
+
+/* ---------- backup ---------- */
+$("#btn-export").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(DB.data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download="biblioteca-senai-"+hojeLocal()+".json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast("JSON exportado.");
+});
+$("#imp-json").addEventListener("change",async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{
+    const txt=await f.text(); const doc=DB.garantir(JSON.parse(txt));
+    if(!confirm("Substituir todos os dados atuais pelos do arquivo?")){ e.target.value=""; return; }
+    DB.data=doc; DB.persist(); SYNC.schedulePush(); render(); toast("Dados importados.");
+  }catch(err){ toast("Arquivo inválido.","err"); }
+  e.target.value="";
+});
+
+/* ---------- manutenção ---------- */
+$("#btn-demo").addEventListener("click",()=>{ if(!confirm("Carregar dados de exemplo? Eles se somam aos atuais."))return; carregarDemo(); });
+$("#btn-limpar").addEventListener("click",()=>{
+  if(!confirm("Zerar TODA a base (alunos, presenças, configurações)? Esta ação não pode ser desfeita."))return;
+  if(!confirm("Tem certeza? Todos os registros serão apagados."))return;
+  DB.data=DB.empty(); DB.persist(); SYNC.schedulePush(); render(); toast("Base zerada.");
+});
+
+function carregarDemo(){
+  const nomes=["Maria Santos Silva","João Pedro Almeida","Ana Beatriz Costa","Lucas Oliveira","Júlia Ferreira","Pedro Henrique Lima","Camila Rocha","Bruno Carvalho","Larissa Mendes","Rafael Souza"];
+  const acts=ATIVS;
+  const t=DB.data.settings.turmas;
+  for(let i=0;i<10;i++){
+    const ent=new Date(); ent.setHours(8+Math.floor(Math.random()*9), Math.floor(Math.random()*60),0,0); ent.setDate(ent.getDate()-Math.floor(Math.random()*4));
+    const nk=norm(nomes[i]);
+    if(!DB.data.students.some(s=>s.nameKey===nk)){ const ts=ent.toISOString(); DB.data.students.push({id:uid(),nameKey:nk,name:nomes[i],turma:t[i%t.length],notes:"",manual:false,createdAt:ts,updatedAt:ts,device:"demo"}); }
+    DB.data.checkins.push({id:uid(),nameKey:nk,name:nomes[i],turma:t[i%t.length],atividade:acts[i%acts.length],entryAt:ent.toISOString(),local:"Área Geral",updatedAt:ent.toISOString(),device:"demo"});
+  }
+  DB.persist(); SYNC.schedulePush(); render(); toast("Dados de exemplo carregados.");
+}
+
+/* ---------- PDF (impressão nativa do navegador) ---------- */
+function gerarPDF(){
+  const de=state.relDe, ate=state.relAte;
+  const lista=DB.data.checkins.filter(c=>entreDatas(c.entryAt,de,ate)).sort((a,b)=>(a.entryAt||"").localeCompare(b.entryAt||""));
+  const unicas=new Set(lista.map(c=>norm(c.name))).size;
+  const horas={}; lista.forEach(c=>{const h=new Date(c.entryAt).getHours(); if(!isNaN(h))horas[h]=(horas[h]||0)+1;});
+  const pico=Object.entries(horas).sort((a,b)=>b[1]-a[1])[0];
+  const porAtv=ATIVS.map(a=>({a,n:lista.filter(c=>c.atividade===a).length}));
+  const titulo=`Biblioteca SENAI Morvan Figueiredo — Relatório de entradas`;
+  const periodo=(de||"início")+" a "+(ate||"hoje");
+  const root=$("#print-root");
+  root.innerHTML=`
+    <h1>${escH(titulo)}</h1>
+    <div class="meta">Período: ${escH(periodo)} · Gerado em ${fmtDataHora(nowISO())}</div>
+    <div class="kpis">
+      <div class="kpi"><div class="v">${lista.length}</div><div class="l">Check-ins</div></div>
+      <div class="kpi"><div class="v">${unicas}</div><div class="l">Pessoas únicas</div></div>
+      <div class="kpi"><div class="v">${pico?String(pico[0]).padStart(2,"0")+"h":"—"}</div><div class="l">Horário de pico</div></div>
+    </div>
+    <h2>Por atividade</h2>
+    <table><thead><tr><th>Atividade</th><th>Check-ins</th></tr></thead><tbody>${porAtv.map(x=>`<tr><td>${escH(x.a)}</td><td>${x.n}</td></tr>`).join("")}</tbody></table>
+    <h2>Detalhamento</h2>
+    <table><thead><tr><th>Entrada</th><th>Nome</th><th>Turma</th><th>Atividade</th></tr></thead><tbody>
+    ${lista.map(c=>`<tr><td>${escH(fmtDataHora(c.entryAt))}</td><td>${escH(c.name)}</td><td>${escH(c.turma||"—")}</td><td>${escH(c.atividade||"—")}</td></tr>`).join("")}
+    </tbody></table>`;
+  window.print();
+}
+
+/* ---------- tick (relógio) ---------- */
+function tick(){
+  const d=new Date();
+  $("#clock").textContent=d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+}
+
+/* ---------- inicialização ---------- */
+function init(){
+  DB.load();
+  // tema
+  const tema=store.get("bs_theme")||"light";
+  applyTheme(tema);
+  // ?sync=CODE na URL do painel → adota o código
+  const p=new URLSearchParams(location.search);
+  const sp=p.get("sync");
+  if(sp){ const c=SYNC.limpar(sp); if(c&&/^[A-Za-z0-9._-]{4,80}$/.test(c)) SYNC.setCode(c); }
+  // default relatório = hoje
+  setRelRange(hojeLocal(),hojeLocal());
+  // estado inicial filtros histórico vazios
+  render();
+  updateSyncUI();
+  // primeira sincronização + polling
+  if(SYNC.enabled()){
+    SYNC.syncOnce().then(s=>{updateSyncUI(); if(s&&s!=="inalterado") render();}).catch(()=>updateSyncUI());
+    SYNC.startPolling();
+  }
+  // tick a cada segundo (relógio + durações)
+  setInterval(tick,1000); tick();
+}
+init();
+</script>
+</body>
+</html>
